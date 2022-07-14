@@ -38,6 +38,8 @@ public:
     getInput("backup_dist", dist);
     double speed;
     getInput("backup_speed", speed);
+    double time_allowance;
+    getInput("time_allowance", time_allowance);
 
     // silently fix, vector direction determined by distance sign
     if (speed < 0.0) {
@@ -49,6 +51,7 @@ public:
     goal_.target.y = 0.0;
     goal_.target.z = 0.0;
     goal_.speed = speed;
+    goal_.time_allowance = rclcpp::Duration::from_seconds(time_allowance);
   }
 
   void on_tick() override
@@ -61,7 +64,8 @@ public:
     return providedBasicPorts(
       {
         BT::InputPort<double>("backup_dist", -0.15, "Distance to backup"),
-        BT::InputPort<double>("backup_speed", 0.025, "Speed at which to backup")
+        BT::InputPort<double>("backup_speed", 0.025, "Speed at which to backup"),
+        BT::InputPort<double>("time_allowance", 10.0, "Allowed time for reversing")
       });
   }
 };
