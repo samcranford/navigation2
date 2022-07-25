@@ -503,7 +503,7 @@ void tryWriteMapToFile(
     mat.getEulerYPR(yaw, pitch, roll);
 
     YAML::Emitter e;
-    e << YAML::Precision(3);
+    e << YAML::Precision(9);
     e << YAML::BeginMap;
     e << YAML::Key << "image" << YAML::Value << mapdatafile;
     e << YAML::Key << "mode" << YAML::Value << map_mode_to_string(save_parameters.mode);
