@@ -45,7 +45,6 @@ ControllerServer::ControllerServer()
   RCLCPP_INFO(get_logger(), "Creating controller server");
 
   declare_parameter("controller_frequency", 20.0);
-
   declare_parameter("progress_checker_plugin", default_progress_checker_id_);
   declare_parameter("goal_checker_plugin", default_goal_checker_id_);
   declare_parameter("controller_plugins", default_ids_);
@@ -161,6 +160,7 @@ ControllerServer::on_configure(const rclcpp_lifecycle::State & /*state*/)
 
   odom_sub_ = std::make_unique<nav_2d_utils::OdomSubscriber>(node);
   vel_publisher_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 1);
+  progress_checker_publisher_ = create_publisher<std_msgs::msg::Bool>("robot_progression", 1);
 
   // Create the action server that we implement with our followPath method
   action_server_ = std::make_unique<ActionServer>(
@@ -181,6 +181,7 @@ ControllerServer::on_activate(const rclcpp_lifecycle::State & /*state*/)
     it->second->activate();
   }
   vel_publisher_->on_activate();
+  progress_checker_publisher_->on_activate();
   action_server_->activate();
 
   return nav2_util::CallbackReturn::SUCCESS;
@@ -200,6 +201,7 @@ ControllerServer::on_deactivate(const rclcpp_lifecycle::State & /*state*/)
 
   publishZeroVelocity();
   vel_publisher_->on_deactivate();
+  progress_checker_publisher_->on_deactivate();
 
   return nav2_util::CallbackReturn::SUCCESS;
 }
@@ -221,6 +223,7 @@ ControllerServer::on_cleanup(const rclcpp_lifecycle::State & /*state*/)
   action_server_.reset();
   odom_sub_.reset();
   vel_publisher_.reset();
+  progress_checker_publisher_.reset();
   action_server_.reset();
   goal_checker_->reset();
 
@@ -354,7 +357,18 @@ void ControllerServer::computeAndPublishVelocity()
   }
 
   if (!progress_checker_->check(pose)) {
+    if (progress_checker_publisher_->is_activated() && this->count_subscribers(progress_checker_publisher_->get_topic_name()) > 0){
+      auto progress_msg = std_msgs::msg::Bool();
+      progress_msg.data = false;
+      progress_checker_publisher_->publish(progress_msg);
+    }
     throw nav2_core::PlannerException("Failed to make progress");
+  } else{ 
+    if (progress_checker_publisher_->is_activated() && this->count_subscribers(progress_checker_publisher_->get_topic_name()) > 0){
+      auto progress_msg = std_msgs::msg::Bool();
+      progress_msg.data = true;
+      progress_checker_publisher_->publish(progress_msg);
+    }
   }
 
   nav_2d_msgs::msg::Twist2D twist = getThresholdedTwist(odom_sub_->getTwist());
