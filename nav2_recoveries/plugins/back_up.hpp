@@ -18,41 +18,38 @@
 #include <chrono>
 #include <memory>
 
-#include "nav2_recoveries/recovery.hpp"
 #include "nav2_msgs/action/back_up.hpp"
+#include "nav2_recoveries/recovery.hpp"
 
-namespace nav2_recoveries
-{
+namespace nav2_recoveries {
 using BackUpAction = nav2_msgs::action::BackUp;
 
-class BackUp : public Recovery<BackUpAction>
-{
-public:
-  BackUp();
-  ~BackUp();
+class BackUp : public Recovery<BackUpAction> {
+   public:
+    BackUp();
+    ~BackUp();
 
-  Status onRun(const std::shared_ptr<const BackUpAction::Goal> command) override;
+    Status onRun(const std::shared_ptr<const BackUpAction::Goal> command) override;
 
-  Status onCycleUpdate() override;
+    Status onCycleUpdate() override;
 
-protected:
-  bool isCollisionFree(
-    const double & distance,
-    geometry_msgs::msg::Twist * cmd_vel,
-    geometry_msgs::msg::Pose2D & pose2d);
+   protected:
+    bool isCollisionFree(const double& distance, geometry_msgs::msg::Twist* cmd_vel, geometry_msgs::msg::Pose2D& pose2d);
 
-  void onConfigure() override;
+    void onConfigure() override;
 
-  double min_linear_vel_;
-  double max_linear_vel_;
-  double linear_acc_lim_;
+    double min_linear_vel_;
+    double max_linear_vel_;
+    double linear_acc_lim_;
 
-  geometry_msgs::msg::PoseStamped initial_pose_;
-  double command_x_;
-  double command_speed_;
-  double simulate_ahead_time_;
+    geometry_msgs::msg::PoseStamped initial_pose_;
+    double command_x_;
+    double command_speed_;
+    double simulate_ahead_time_;
+    rclcpp::Duration command_time_allowance_{0, 0};
+    rclcpp::Time end_time_;
 
-  BackUpAction::Feedback::SharedPtr feedback_;
+    BackUpAction::Feedback::SharedPtr feedback_;
 };
 
 }  // namespace nav2_recoveries

@@ -16,42 +16,39 @@
 #define NAV2_RECOVERIES__PLUGINS__SPIN_HPP_
 
 #include <chrono>
-#include <string>
 #include <memory>
+#include <string>
 
-#include "nav2_recoveries/recovery.hpp"
-#include "nav2_msgs/action/spin.hpp"
 #include "geometry_msgs/msg/quaternion.hpp"
+#include "nav2_msgs/action/spin.hpp"
+#include "nav2_recoveries/recovery.hpp"
 
-namespace nav2_recoveries
-{
+namespace nav2_recoveries {
 using SpinAction = nav2_msgs::action::Spin;
 
-class Spin : public Recovery<SpinAction>
-{
-public:
-  Spin();
-  ~Spin();
+class Spin : public Recovery<SpinAction> {
+   public:
+    Spin();
+    ~Spin();
 
-  Status onRun(const std::shared_ptr<const SpinAction::Goal> command) override;
-  void onConfigure() override;
-  Status onCycleUpdate() override;
+    Status onRun(const std::shared_ptr<const SpinAction::Goal> command) override;
+    void onConfigure() override;
+    Status onCycleUpdate() override;
 
-protected:
-  bool isCollisionFree(
-    const double & distance,
-    geometry_msgs::msg::Twist * cmd_vel,
-    geometry_msgs::msg::Pose2D & pose2d);
+   protected:
+    bool isCollisionFree(const double& distance, geometry_msgs::msg::Twist* cmd_vel, geometry_msgs::msg::Pose2D& pose2d);
 
-  SpinAction::Feedback::SharedPtr feedback_;
+    SpinAction::Feedback::SharedPtr feedback_;
 
-  double min_rotational_vel_;
-  double max_rotational_vel_;
-  double rotational_acc_lim_;
-  double cmd_yaw_;
-  double prev_yaw_;
-  double relative_yaw_;
-  double simulate_ahead_time_;
+    double min_rotational_vel_;
+    double max_rotational_vel_;
+    double rotational_acc_lim_;
+    double cmd_yaw_;
+    double prev_yaw_;
+    double relative_yaw_;
+    double simulate_ahead_time_;
+    rclcpp::Duration command_time_allowance_{0, 0};
+    rclcpp::Time end_time_;
 };
 
 }  // namespace nav2_recoveries
