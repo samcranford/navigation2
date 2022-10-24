@@ -94,8 +94,10 @@ MapServer::on_configure(const rclcpp_lifecycle::State & /*state*/)
   std::shared_ptr<nav2_msgs::srv::LoadMap::Response> rsp =
     std::make_shared<nav2_msgs::srv::LoadMap::Response>();
 
+  // If map not available still run, but publish empty message with transient local reliable QOS
+  // use header and info to determine if a real map is in use or empty
   if (!loadMapResponseFromYaml(yaml_filename, rsp)) {
-    throw std::runtime_error("Failed to load map yaml file: " + yaml_filename);
+    RCLCPP_INFO(get_logger(), "Failed to load map yaml file: " + yaml_filename);
   }
 
   // Make name prefix for services
