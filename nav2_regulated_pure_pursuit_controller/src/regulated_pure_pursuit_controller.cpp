@@ -30,6 +30,12 @@ using nav2_util::declare_parameter_if_not_declared;
 using nav2_util::geometry_utils::euclidean_distance;
 using namespace nav2_costmap_2d;  // NOLINT
 
+double clamp(double value, double min, double max) {
+  if (value < min) return min;
+  if (value > max) return max;
+  return value;
+}
+
 namespace nav2_regulated_pure_pursuit_controller
 {
 
@@ -70,10 +76,6 @@ void RegulatedPurePursuitController::configure(
 
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".desired_linear_vel", rclcpp::ParameterValue(0.5));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_linear_accel", rclcpp::ParameterValue(2.5));
-  declare_parameter_if_not_declared(
-    node, plugin_name_ + ".max_linear_decel", rclcpp::ParameterValue(2.5));
   declare_parameter_if_not_declared(
     node, plugin_name_ + ".lookahead_dist", rclcpp::ParameterValue(0.6));
   declare_parameter_if_not_declared(
@@ -119,8 +121,6 @@ void RegulatedPurePursuitController::configure(
     node, plugin_name_ + ".goal_dist_tol", rclcpp::ParameterValue(0.25));
 
   node->get_parameter(plugin_name_ + ".desired_linear_vel", desired_linear_vel_);
-  node->get_parameter(plugin_name_ + ".max_linear_accel", max_linear_accel_);
-  node->get_parameter(plugin_name_ + ".max_linear_decel", max_linear_decel_);
   node->get_parameter(plugin_name_ + ".lookahead_dist", lookahead_dist_);
   node->get_parameter(plugin_name_ + ".min_lookahead_dist", min_lookahead_dist_);
   node->get_parameter(plugin_name_ + ".max_lookahead_dist", max_lookahead_dist_);
@@ -213,7 +213,7 @@ double RegulatedPurePursuitController::getLookAheadDistance(const geometry_msgs:
   double lookahead_dist = lookahead_dist_;
   if (use_velocity_scaled_lookahead_dist_) {
     lookahead_dist = speed.linear.x * lookahead_time_;
-    lookahead_dist = std::clamp(lookahead_dist, min_lookahead_dist_, max_lookahead_dist_);
+    lookahead_dist = clamp(lookahead_dist, min_lookahead_dist_, max_lookahead_dist_);
   }
 
   return lookahead_dist;
@@ -305,7 +305,7 @@ void RegulatedPurePursuitController::rotateToHeading(
   const double & dt = control_duration_;
   const double min_feasible_angular_speed = curr_speed.angular.z - max_angular_accel_ * dt;
   const double max_feasible_angular_speed = curr_speed.angular.z + max_angular_accel_ * dt;
-  angular_vel = std::clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
+  angular_vel = clamp(angular_vel, min_feasible_angular_speed, max_feasible_angular_speed);
 }
 
 geometry_msgs::msg::PoseStamped RegulatedPurePursuitController::getLookAheadPoint(
@@ -346,7 +346,7 @@ bool RegulatedPurePursuitController::isCollisionImminent(
   pose_msg.header.frame_id = arc_pts_msg.header.frame_id;
   pose_msg.header.stamp = arc_pts_msg.header.stamp;
 
-  const double projection_time = costmap_->getResolution() / linear_vel;
+  const double projection_time = costmap_->getResolution() / fabs(linear_vel);
 
   geometry_msgs::msg::Pose2D curr_pose;
   curr_pose.x = robot_pose.pose.position.x;
@@ -410,7 +410,7 @@ double RegulatedPurePursuitController::costAtPose(const double & x, const double
 
 void RegulatedPurePursuitController::applyConstraints(
   const double & dist_error, const double & lookahead_dist,
-  const double & curvature, const geometry_msgs::msg::Twist & curr_speed,
+  const double & curvature, const geometry_msgs::msg::Twist & /*curr_speed*/,
   const double & pose_cost, double & linear_vel)
 {
   double curvature_vel = linear_vel;
@@ -458,11 +458,7 @@ void RegulatedPurePursuitController::applyConstraints(
   }
 
   // Limit linear velocities to be valid and kinematically feasible, v = v0 + a * dt
-  double & dt = control_duration_;
-  const double max_feasible_linear_speed = curr_speed.linear.x + max_linear_accel_ * dt;
-  const double min_feasible_linear_speed = curr_speed.linear.x - max_linear_decel_ * dt;
-  linear_vel = std::clamp(linear_vel, min_feasible_linear_speed, max_feasible_linear_speed);
-  linear_vel = std::clamp(linear_vel, 0.0, desired_linear_vel_);
+  linear_vel = clamp(linear_vel, 0.0, desired_linear_vel_);
 }
 
 void RegulatedPurePursuitController::setPlan(const nav_msgs::msg::Path & path)
