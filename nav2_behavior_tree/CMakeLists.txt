@@ -93,9 +93,6 @@ list(APPEND plugin_libs nav2_initial_pose_received_condition_bt_node)
 add_library(nav2_is_battery_low_condition_bt_node SHARED plugins/condition/is_battery_low_condition.cpp)
 list(APPEND plugin_libs nav2_is_battery_low_condition_bt_node)
 
-add_library(nav2_is_navigation_running_condition_bt_node SHARED plugins/condition/is_navigation_running_condition.cpp)
-list(APPEND plugin_libs nav2_is_navigation_running_condition_bt_node)
-
 add_library(nav2_reinitialize_global_localization_service_bt_node SHARED plugins/action/reinitialize_global_localization_service.cpp)
 list(APPEND plugin_libs nav2_reinitialize_global_localization_service_bt_node)
 
