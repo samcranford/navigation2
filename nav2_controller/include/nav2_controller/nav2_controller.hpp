@@ -63,7 +63,7 @@ protected:
    * @brief Configures controller parameters and member variables
    *
    * Configures controller plugin and costmap; Initialize odom subscriber,
-   * velocity publisher, progress publisher and follow path action server.
+   * velocity publisher and follow path action server.
    * @param state LifeCycle Node's state
    * @return Success or Failure
    * @throw pluginlib::PluginlibException When failed to initialize controller
@@ -197,7 +197,6 @@ protected:
   // Publishers and subscribers
   std::unique_ptr<nav_2d_utils::OdomSubscriber> odom_sub_;
   rclcpp_lifecycle::LifecyclePublisher<geometry_msgs::msg::Twist>::SharedPtr vel_publisher_;
-  rclcpp_lifecycle::LifecyclePublisher<std_msgs::msg::Bool>::SharedPtr progress_checker_publisher_;
 
   // Progress Checker Plugin
   pluginlib::ClassLoader<nav2_core::ProgressChecker> progress_checker_loader_;
