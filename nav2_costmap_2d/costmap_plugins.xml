@@ -15,6 +15,8 @@
     <class type="nav2_costmap_2d::RangeSensorLayer" base_class_type="nav2_costmap_2d::Layer">
       <description>A range-sensor (sonar, IR) based obstacle layer for costmap_2d</description>
     </class>
+    <class type="nav2_costmap_2d::VisitationLayer" base_class_type="nav2_costmap_2d::Layer">
+      <description>Marks grid cells with cost based on if visited.</description>
+    </class>
   </library>
 </class_libraries>
-

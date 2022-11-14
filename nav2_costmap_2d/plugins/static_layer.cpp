@@ -89,6 +89,9 @@ StaticLayer::onInitialize()
     map_topic_, map_qos,
     std::bind(&StaticLayer::incomingMap, this, std::placeholders::_1));
 
+  reset_sub_ = node_->create_subscription<std_msgs::msg::Bool>("/visitation_layer/reset_visited", 1,
+                                                                 std::bind(&StaticLayer::resetCallback, this, std::placeholders::_1));
+
   if (subscribe_to_updates_) {
     RCLCPP_INFO(node_->get_logger(), "Subscribing to updates");
     map_update_sub_ = node_->create_subscription<map_msgs::msg::OccupancyGridUpdate>(
@@ -422,6 +425,12 @@ StaticLayer::updateCosts(
     }
   }
   update_in_progress_.store(false);
+}
+
+void StaticLayer::resetCallback(const std_msgs::msg::Bool::SharedPtr msg) {
+    if (msg->data) {
+        reset();
+    }
 }
 
 }  // namespace nav2_costmap_2d
